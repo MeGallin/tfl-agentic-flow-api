@@ -2,6 +2,7 @@ const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { HammersmithCityLineTools } = require('../tools/hammersmithCityTools');
 const { createHammersmithCityPrompt } = require('../prompts/hammersmithCityPrompt');
+const { todays_date_time } = require('../tools/dateTimeTools');
 
 class HammersmithCityAgent {
   constructor() {
@@ -90,7 +91,10 @@ ${nextArrivals}
 (Last updated: ${tflData.arrivals.lastUpdated})`;
       }
 
-      const systemPrompt = createHammersmithCityPrompt(tflData, arrivalInfo);
+      // Get current London time for the prompt
+      const currentTime = todays_date_time();
+
+      const systemPrompt = createHammersmithCityPrompt(tflData, arrivalInfo, currentTime);
       const response = await llm.invoke([
         new SystemMessage(systemPrompt),
         new HumanMessage(query),

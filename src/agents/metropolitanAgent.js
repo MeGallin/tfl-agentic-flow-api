@@ -2,6 +2,7 @@ const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { MetropolitanLineTools } = require('../tools/metropolitanTools');
 const { createMetropolitanPrompt } = require('../prompts/metropolitanPrompt');
+const { todays_date_time } = require('../tools/dateTimeTools');
 
 class MetropolitanAgent {
   constructor() {
@@ -90,7 +91,10 @@ ${nextArrivals}
 (Last updated: ${tflData.arrivals.lastUpdated})`;
       }
 
-      const systemPrompt = createMetropolitanPrompt(tflData, arrivalInfo);
+      // Get current London time for the prompt
+      const currentTime = todays_date_time();
+
+      const systemPrompt = createMetropolitanPrompt(tflData, arrivalInfo, currentTime);
       const response = await llm.invoke([
         new SystemMessage(systemPrompt),
         new HumanMessage(query),

@@ -2,6 +2,7 @@ const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { PiccadillyLineTools } = require('../tools/piccadillyTools');
 const { createPiccadillyPrompt } = require('../prompts/piccadillyPrompt');
+const { todays_date_time } = require('../tools/dateTimeTools');
 
 class PiccadillyAgent {
   constructor() {
@@ -137,7 +138,10 @@ ${nextArrivals}
         console.log('[PiccadillyAgent] No arrival data available for prompt');
       }
 
-      const systemPrompt = createPiccadillyPrompt(tflData, arrivalInfo);
+      // Get current London time for the prompt
+      const currentTime = todays_date_time();
+
+      const systemPrompt = createPiccadillyPrompt(tflData, arrivalInfo, currentTime);
 
       console.log('[PiccadillyAgent] System prompt being sent to LLM:');
       console.log('='.repeat(80));

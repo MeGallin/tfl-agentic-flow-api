@@ -2,6 +2,7 @@ const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { VictoriaLineTools } = require('../tools/victoriaTools');
 const { createVictoriaPrompt } = require('../prompts/victoriaPrompt');
+const { todays_date_time } = require('../tools/dateTimeTools');
 
 class VictoriaAgent {
   constructor() {
@@ -137,7 +138,10 @@ ${nextArrivals}
         console.log('[VictoriaAgent] No arrival data available for prompt');
       }
 
-      const systemPrompt = createVictoriaPrompt(tflData, arrivalInfo);
+      // Get current London time for the prompt
+      const currentTime = todays_date_time();
+
+      const systemPrompt = createVictoriaPrompt(tflData, arrivalInfo, currentTime);
 
       console.log('[VictoriaAgent] System prompt being sent to LLM:');
       console.log('='.repeat(80));

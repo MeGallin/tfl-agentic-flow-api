@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { DateTimeTools } = require('./dateTimeTools');
 
 class CircleLineTools {
   constructor() {
@@ -61,7 +62,7 @@ class CircleLineTools {
         stations: filteredStations,
         stationCount: stationsData?.length || 0,
         queryProcessed: query,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('[CircleTools] Circle Line API Error:', error);
@@ -76,7 +77,7 @@ class CircleLineTools {
         stations: [],
         stationCount: 36, // Approximate Circle Line station count
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
         fallbackUsed: true,
       };
     }
@@ -228,7 +229,7 @@ class CircleLineTools {
       return {
         line: this.lineName,
         status: data[0]?.lineStatuses || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Service Status Error:', error);
@@ -238,7 +239,7 @@ class CircleLineTools {
           { statusSeverityDescription: 'Service information unavailable' },
         ],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -262,7 +263,7 @@ class CircleLineTools {
         line: this.lineName,
         arrivals: circleArrivals,
         count: circleArrivals.length,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Arrivals Error:', error);
@@ -272,7 +273,7 @@ class CircleLineTools {
         arrivals: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -288,7 +289,7 @@ class CircleLineTools {
         line: this.lineName,
         disruptions: data || [],
         count: data?.length || 0,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Disruptions Error:', error);
@@ -297,7 +298,7 @@ class CircleLineTools {
         disruptions: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -324,7 +325,7 @@ class CircleLineTools {
         to,
         journeys: circleJourneys,
         allJourneys: data.journeys || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Journey Planner Error:', error);
@@ -333,7 +334,7 @@ class CircleLineTools {
         to,
         journeys: [],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }

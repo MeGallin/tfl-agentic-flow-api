@@ -2,6 +2,7 @@ const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { NorthernLineTools } = require('../tools/northernTools');
 const { createNorthernPrompt } = require('../prompts/northernPrompt');
+const { todays_date_time } = require('../tools/dateTimeTools');
 
 class NorthernAgent {
   constructor() {
@@ -137,7 +138,10 @@ ${nextArrivals}
         console.log('[NorthernAgent] No arrival data available for prompt');
       }
 
-      const systemPrompt = createNorthernPrompt(tflData, arrivalInfo);
+      // Get current London time for the prompt
+      const currentTime = todays_date_time();
+
+      const systemPrompt = createNorthernPrompt(tflData, arrivalInfo, currentTime);
 
       console.log('[NorthernAgent] System prompt being sent to LLM:');
       console.log('='.repeat(80));

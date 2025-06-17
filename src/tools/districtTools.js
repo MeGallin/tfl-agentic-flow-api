@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { DateTimeTools } = require('./dateTimeTools');
 
 class DistrictLineTools {
   constructor() {
@@ -63,7 +64,7 @@ class DistrictLineTools {
         stations: filteredStations,
         stationCount: stationsData?.length || 0,
         queryProcessed: query,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('[DistrictTools] District Line API Error:', error);
@@ -78,7 +79,7 @@ class DistrictLineTools {
         stations: [],
         stationCount: 60, // Approximate District Line station count
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
         fallbackUsed: true,
       };
     }
@@ -225,7 +226,7 @@ class DistrictLineTools {
       return {
         line: this.lineName,
         status: data[0]?.lineStatuses || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Service Status Error:', error);
@@ -235,7 +236,7 @@ class DistrictLineTools {
           { statusSeverityDescription: 'Service information unavailable' },
         ],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -259,7 +260,7 @@ class DistrictLineTools {
         line: this.lineName,
         arrivals: districtArrivals,
         count: districtArrivals.length,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Arrivals Error:', error);
@@ -269,7 +270,7 @@ class DistrictLineTools {
         arrivals: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -285,7 +286,7 @@ class DistrictLineTools {
         line: this.lineName,
         disruptions: data || [],
         count: data?.length || 0,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Disruptions Error:', error);
@@ -294,7 +295,7 @@ class DistrictLineTools {
         disruptions: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -321,7 +322,7 @@ class DistrictLineTools {
         to,
         journeys: districtJourneys,
         allJourneys: data.journeys || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Journey Planner Error:', error);
@@ -330,7 +331,7 @@ class DistrictLineTools {
         to,
         journeys: [],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -405,7 +406,7 @@ class DistrictLineTools {
         'Tower Hill - Circle line',
         'Mile End - Central and Hammersmith & City lines',
       ],
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: DateTimeTools.getTFLTimestamp(),
     };
   }
 
@@ -417,7 +418,7 @@ class DistrictLineTools {
       return {
         error: `Branch "${branch}" not found`,
         availableBranches: Object.keys(branchInfo.branches),
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
 
@@ -425,7 +426,7 @@ class DistrictLineTools {
       branch: requestedBranch.name,
       stations: requestedBranch.stations,
       description: requestedBranch.description,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: DateTimeTools.getTFLTimestamp(),
     };
   }
 }

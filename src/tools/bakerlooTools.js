@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { DateTimeTools } = require('./dateTimeTools');
 
 class BakerlooLineTools {
   constructor() {
@@ -63,7 +64,7 @@ class BakerlooLineTools {
         stations: filteredStations,
         stationCount: stationsData?.length || 0,
         queryProcessed: query,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('[BakerlooTools] Bakerloo Line API Error:', error);
@@ -78,7 +79,7 @@ class BakerlooLineTools {
         stations: [],
         stationCount: 25, // Approximate Bakerloo Line station count
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
         fallbackUsed: true,
       };
     }
@@ -225,7 +226,7 @@ class BakerlooLineTools {
       return {
         line: this.lineName,
         status: data[0]?.lineStatuses || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Service Status Error:', error);
@@ -235,7 +236,7 @@ class BakerlooLineTools {
           { statusSeverityDescription: 'Service information unavailable' },
         ],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -259,7 +260,7 @@ class BakerlooLineTools {
         line: this.lineName,
         arrivals: bakerlooArrivals,
         count: bakerlooArrivals.length,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Arrivals Error:', error);
@@ -269,7 +270,7 @@ class BakerlooLineTools {
         arrivals: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -285,7 +286,7 @@ class BakerlooLineTools {
         line: this.lineName,
         disruptions: data || [],
         count: data?.length || 0,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Disruptions Error:', error);
@@ -294,7 +295,7 @@ class BakerlooLineTools {
         disruptions: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -321,7 +322,7 @@ class BakerlooLineTools {
         to,
         journeys: bakerlooJourneys,
         allJourneys: data.journeys || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Journey Planner Error:', error);
@@ -330,7 +331,7 @@ class BakerlooLineTools {
         to,
         journeys: [],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -355,7 +356,7 @@ class BakerlooLineTools {
         "Piccadilly Circus - Heart of London's West End",
         'Waterloo - Major railway terminus',
       ],
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: DateTimeTools.getTFLTimestamp(),
     };
   }
 }

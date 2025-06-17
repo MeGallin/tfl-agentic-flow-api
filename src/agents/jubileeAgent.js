@@ -2,6 +2,7 @@ const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { JubileeLineTools } = require('../tools/jubileeTools');
 const { createJubileePrompt } = require('../prompts/jubileePrompt');
+const { todays_date_time } = require('../tools/dateTimeTools');
 
 class JubileeAgent {
   constructor() {
@@ -137,7 +138,9 @@ ${nextArrivals}
         console.log('[JubileeAgent] No arrival data available for prompt');
       }
 
-      const systemPrompt = createJubileePrompt(tflData, arrivalInfo);
+      // Get current London time for the prompt
+      const currentTime = todays_date_time();
+      const systemPrompt = createJubileePrompt(tflData, arrivalInfo, currentTime);
 
       console.log('[JubileeAgent] System prompt being sent to LLM:');
       console.log('='.repeat(80));

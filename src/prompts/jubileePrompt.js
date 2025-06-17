@@ -1,7 +1,14 @@
-const createJubileePrompt = (tflData, arrivalInfo = '') => {
-  return `You are a **Jubilee Line Agent**, specializing in analyzing and extracting structured information from raw JSON data. Your role is to process **Transport for London (TfL) real-time tube prediction data** and return it in an **organized, readable format**.
+const createJubileePrompt = (tflData, arrivalInfo = '', currentTime = null) => {
+  const timeInfo = currentTime ? `
 
-- Utilize the todays_date_time tool to get the current time you can use to calculate accurate arrival times.
+**CURRENT LONDON TIME:**
+- Current time: ${currentTime.currentTime}
+- 24-hour format: ${currentTime.time24}
+- Timezone: Europe/London (BST/GMT)
+
+Use this current time to calculate accurate arrival times and timestamps.` : '';
+
+  return `You are a **Jubilee Line Agent**, specializing in analyzing and extracting structured information from raw JSON data. Your role is to process **Transport for London (TfL) real-time tube prediction data** and return it in an **organized, readable format**.${timeInfo}
 
 **Instructions:**
 

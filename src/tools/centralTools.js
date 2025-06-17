@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { DateTimeTools } = require('./dateTimeTools');
 
 class CentralLineTools {
   constructor() {
@@ -64,7 +65,7 @@ class CentralLineTools {
         stations: filteredStations,
         stationCount: stationsData?.length || 0,
         queryProcessed: query,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('[CentralTools] Central Line API Error:', error);
@@ -79,7 +80,7 @@ class CentralLineTools {
         stations: [],
         stationCount: 49, // Approximate Central Line station count
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
         fallbackUsed: true,
       };
     }
@@ -232,7 +233,7 @@ class CentralLineTools {
       return {
         line: this.lineName,
         status: data[0]?.lineStatuses || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Service Status Error:', error);
@@ -242,7 +243,7 @@ class CentralLineTools {
           { statusSeverityDescription: 'Service information unavailable' },
         ],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -266,7 +267,7 @@ class CentralLineTools {
         line: this.lineName,
         arrivals: centralArrivals,
         count: centralArrivals.length,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Arrivals Error:', error);
@@ -276,7 +277,7 @@ class CentralLineTools {
         arrivals: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -292,7 +293,7 @@ class CentralLineTools {
         line: this.lineName,
         disruptions: data || [],
         count: data?.length || 0,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Disruptions Error:', error);
@@ -301,7 +302,7 @@ class CentralLineTools {
         disruptions: [],
         count: 0,
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }
@@ -328,7 +329,7 @@ class CentralLineTools {
         to,
         journeys: centralJourneys,
         allJourneys: data.journeys || [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     } catch (error) {
       console.error('Journey Planner Error:', error);
@@ -337,7 +338,7 @@ class CentralLineTools {
         to,
         journeys: [],
         error: error.message,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
       };
     }
   }

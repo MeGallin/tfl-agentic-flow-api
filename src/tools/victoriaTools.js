@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { DateTimeTools } = require('./dateTimeTools');
 
 class VictoriaLineTools {
   constructor() {
@@ -43,7 +44,7 @@ class VictoriaLineTools {
         status: statusData || [],
         stations: filteredStations,
         stationCount: stationsData?.length || 0,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
         queryContext: query,
       };
     } catch (error) {
@@ -52,7 +53,7 @@ class VictoriaLineTools {
         status: [{ statusSeverityDescription: 'Service information unavailable' }],
         stations: [],
         stationCount: 0,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
         error: error.message,
         queryContext: query,
       };
