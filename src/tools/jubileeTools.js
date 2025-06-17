@@ -111,19 +111,52 @@ class JubileeLineTools {
   async getServiceStatus() {
     try {
       const response = await fetch(`${this.tflApiUrl}/Line/${this.lineId}/Status`);
-      return await response.json();
+      const data = await response.json();
+
+      return {
+        line: this.lineName,
+        status: data[0]?.lineStatuses || [],
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
+      };
     } catch (error) {
-      return [];
+      console.error('Service Status Error:', error);
+      return {
+        line: this.lineName,
+        status: [{ statusSeverityDescription: 'Service information unavailable' }],
+        error: error.message,
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
+      };
     }
   }
 
   async getArrivals(stationId) {
     try {
       const response = await fetch(`${this.tflApiUrl}/StopPoint/${stationId}/Arrivals`);
-      const arrivals = await response.json();
-      return arrivals.filter(arrival => arrival.lineId === this.lineId);
+      const data = await response.json();
+      
+      // Filter arrivals for Jubilee Line only
+      const jubileeArrivals = data?.filter(arrival => arrival.lineId === this.lineId) || [];
+      
+      // Sort by expected arrival time
+      jubileeArrivals.sort((a, b) => a.timeToStation - b.timeToStation);
+
+      return {
+        stationId,
+        line: this.lineName,
+        arrivals: jubileeArrivals,
+        count: jubileeArrivals.length,
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
+      };
     } catch (error) {
-      return [];
+      console.error('Arrivals Error:', error);
+      return {
+        stationId,
+        line: this.lineName,
+        arrivals: [],
+        count: 0,
+        error: error.message,
+        lastUpdated: DateTimeTools.getTFLTimestamp(),
+      };
     }
   }
 }

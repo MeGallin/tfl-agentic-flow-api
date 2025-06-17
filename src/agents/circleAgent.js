@@ -2,6 +2,7 @@ const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { CircleLineTools } = require('../tools/circleTools');
 const { createCirclePrompt } = require('../prompts/circlePrompt');
+const { todays_date_time } = require('../tools/dateTimeTools');
 
 class CircleAgent {
   constructor() {
@@ -59,7 +60,7 @@ class CircleAgent {
             line: 'Circle',
             arrivals: stationInfo.arrivals,
             count: stationInfo.arrivals.length,
-            lastUpdated: new Date().toISOString(),
+            lastUpdated: todays_date_time().iso,
           };
 
           console.log(
@@ -84,7 +85,7 @@ class CircleAgent {
         ],
         stationCount: rawTflData.stationCount || 36,
         queryProcessed: query,
-        lastUpdated: rawTflData.lastUpdated || new Date().toISOString(),
+        lastUpdated: rawTflData.lastUpdated || todays_date_time().iso,
         // Only include a few key stations to avoid token overflow
         keyStations:
           rawTflData.stations?.slice(0, 10)?.map((station) => ({

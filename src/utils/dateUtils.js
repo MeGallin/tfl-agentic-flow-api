@@ -50,10 +50,25 @@ function getLondonTime() {
  * Convert a Date object to London timezone ISO string
  */
 function getLondonISOString(date) {
-  const londonOffset = getLondonTimezoneOffset(date);
-  const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000);
-  const londonTime = new Date(utcTime + (londonOffset * 60000));
-  return londonTime.toISOString();
+  // Use Intl to get proper London time, then format as ISO
+  const londonTime = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/London',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(date);
+
+  const parts = {};
+  londonTime.forEach(part => {
+    parts[part.type] = part.value;
+  });
+
+  // Construct ISO-like string for London time (not true ISO as it would need timezone info)
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}.000Z`;
 }
 
 /**

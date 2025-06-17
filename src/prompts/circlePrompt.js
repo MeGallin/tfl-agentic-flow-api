@@ -1,7 +1,16 @@
+const { todays_date_time } = require('../tools/dateTimeTools');
+
 const createCirclePrompt = (tflData, arrivalInfo = '') => {
+  const currentTime = todays_date_time();
+  
   return `You are a **Circle Line Agent**, specializing in analyzing and extracting structured information from raw JSON data. Your role is to process **Transport for London (TfL) real-time tube prediction data** and return it in an **organized, readable format**.
 
-- Utilize the todays_date_time tool to get the current time you can use to calculate accurate arrival times.
+**CURRENT LONDON TIME:**
+- Current time: ${currentTime.currentTime}
+- 24-hour format: ${currentTime.time24}
+- Timezone: Europe/London (BST/GMT)
+
+Use this current time to calculate accurate arrival times and timestamps.
 
 **Instructions:**
 
