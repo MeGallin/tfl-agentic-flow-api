@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TFL API Response Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .response {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .content {
+        background: #f0f8f0;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .metadata {
+        background: #f8f8f8;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 10px 0;
+        font-size: 12px;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: #007cba;
+        color: white;
+      }
+      button:hover {
+        background: #005a87;
+      }
+      input {
+        padding: 8px;
+        width: 300px;
+        margin: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>TFL API Response Test</h1>
+
+      <div>
+        <input
+          type="text"
+          id="queryInput"
+          placeholder="Enter your query"
+          value="Circle line status"
+        />
+        <button onclick="testAPI()">Test API</button>
+        <button onclick="clearResults()">Clear</button>
+      </div>
+
+      <div id="results"></div>
+    </div>
+
+    <script>
+      async function testAPI() {
+        const query = document.getElementById('queryInput').value;
+        const resultsDiv = document.getElementById('results');
+
+        try {
+          resultsDiv.innerHTML = '<p>Loading...</p>';
+
+          const response = await fetch('http://localhost:8000/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: query }),
+          });
+
+          const data = await response.json();
+
+          // Display the response in a structured way
+          resultsDiv.innerHTML = `
+                    <div class="response">
+                        <h3>API Response for: "${query}"</h3>
+                        
+                        <h4>Main Content:</h4>
+                        <div class="content">
+                            <strong>Response:</strong> ${
+                              data.response || 'No response content'
+                            }
+                        </div>
+                        
+                        <h4>Additional Data:</h4>
+                        <div class="content">
+                            <strong>Agent:</strong> ${data.agent || 'None'}<br>
+                            <strong>Thread ID:</strong> ${
+                              data.threadId || 'None'
+                            }<br>
+                            <strong>Line Color:</strong> ${
+                              data.lineColor || 'None'
+                            }<br>
+                            <strong>Timestamp:</strong> ${
+                              data.timestamp || 'None'
+                            }
+                        </div>
+                        
+                        <h4>TFL Data:</h4>
+                        <div class="metadata">
+                            <pre>${JSON.stringify(data.tflData, null, 2)}</pre>
+                        </div>
+                        
+                        <h4>Metadata:</h4>
+                        <div class="metadata">
+                            <pre>${JSON.stringify(data.metadata, null, 2)}</pre>
+                        </div>
+                        
+                        <h4>Full Raw Response:</h4>
+                        <div class="metadata">
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    </div>
+                `;
+        } catch (error) {
+          resultsDiv.innerHTML = `<div class="response" style="border-color: red; background: #ffe6e6;">
+                    <h3>Error</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                </div>`;
+        }
+      }
+
+      function clearResults() {
+        document.getElementById('results').innerHTML = '';
+      }
+
+      // Test on page load
+      document.addEventListener('DOMContentLoaded', function () {
+        testAPI();
+      });
+    </script>
+  </body>
+</html>

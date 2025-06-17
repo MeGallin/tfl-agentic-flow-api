@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Central Line Frontend Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              circle: {
+                DEFAULT: '#FFD300',
+                dark: '#E6BE00',
+              },
+              bakerloo: {
+                DEFAULT: '#B36305',
+                dark: '#8F4F04',
+              },
+              district: {
+                DEFAULT: '#00782A',
+                dark: '#005A1F',
+              },
+              central: {
+                DEFAULT: '#E32017',
+                dark: '#C71C0C',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .chat-message {
+        @apply rounded-lg p-4 max-w-3xl;
+      }
+      .chat-message.central {
+        background-color: rgba(227, 32, 23, 0.1);
+        border: 1px solid rgba(227, 32, 23, 0.2);
+      }
+      .btn-central {
+        background-color: #e32017;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      .btn-central:hover {
+        background-color: #c71c0c;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8 text-center"
+        >Central Line Frontend Integration Test</h1
+      >
+
+      <!-- Line Colors Test -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Line Colors</h2>
+        <div class="grid grid-cols-4 gap-4">
+          <div
+            class="bg-circle text-black p-4 rounded-lg text-center font-medium"
+          >
+            Circle Line<br />
+            <span class="text-sm">⭕ #FFD300</span>
+          </div>
+          <div
+            class="bg-bakerloo text-white p-4 rounded-lg text-center font-medium"
+          >
+            Bakerloo Line<br />
+            <span class="text-sm">🟤 #B36305</span>
+          </div>
+          <div
+            class="bg-district text-white p-4 rounded-lg text-center font-medium"
+          >
+            District Line<br />
+            <span class="text-sm">🟢 #00782A</span>
+          </div>
+          <div
+            class="bg-central text-white p-4 rounded-lg text-center font-medium"
+          >
+            Central Line<br />
+            <span class="text-sm">🔴 #E32017</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Message Styling Test -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Chat Message Styling</h2>
+        <div class="space-y-4">
+          <div class="chat-message central">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">🔴</span>
+              <span class="text-sm font-medium opacity-75"
+                >Central Line Assistant</span
+              >
+            </div>
+            <p
+              >I'm your Central Line specialist! I can help you with information
+              about the Central line, including live arrivals at stations like
+              Oxford Circus, Bond Street, Bank, and Liverpool Street.</p
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Button Styling Test -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Button Styling</h2>
+        <div class="flex gap-4 flex-wrap">
+          <button
+            class="bg-circle hover:bg-circle-dark text-black font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            Circle Line
+          </button>
+          <button
+            class="bg-bakerloo hover:bg-bakerloo-dark text-white font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            Bakerloo Line
+          </button>
+          <button
+            class="bg-district hover:bg-district-dark text-white font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            District Line
+          </button>
+          <button class="btn-central"> Central Line </button>
+        </div>
+      </div>
+
+      <!-- Line Information Test -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Line Information</h2>
+        <div class="bg-white rounded-lg p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="text-2xl">🔴</span>
+            <div>
+              <h3 class="text-lg font-semibold">Central Line</h3>
+              <p class="text-gray-600"
+                >East-west across London from West Ruislip to Epping/Hainault</p
+              >
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="font-medium">Zones:</span> 1, 2, 3, 4, 5, 6
+            </div>
+            <div>
+              <span class="font-medium">Termini:</span> West Ruislip, Ealing
+              Broadway, Epping, Hainault
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Test -->
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Status Indicators</h2>
+        <div class="space-y-2">
+          <div
+            class="bg-green-100 text-green-800 border border-green-200 px-3 py-2 rounded-lg"
+          >
+            ✅ Central Line: Good Service
+          </div>
+          <div
+            class="bg-yellow-100 text-yellow-800 border border-yellow-200 px-3 py-2 rounded-lg"
+          >
+            ⚠️ Central Line: Minor Delays
+          </div>
+          <div
+            class="bg-red-100 text-red-800 border border-red-200 px-3 py-2 rounded-lg"
+          >
+            🚫 Central Line: Severe Delays
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center text-gray-600">
+        <p>✅ Central Line frontend integration test complete!</p>
+        <p class="text-sm mt-2"
+          >All styling and theming appears to be working correctly.</p
+        >
+      </div>
+    </div>
+  </body>
+</html>
