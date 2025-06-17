@@ -1,4 +1,5 @@
 const { ChatOpenAI } = require('@langchain/openai');
+const { traceable } = require('langsmith/traceable');
 const { RouterAgent } = require('./agents/routerAgent');
 const { CircleAgent } = require('./agents/circleAgent');
 const { BakerlooAgent } = require('./agents/bakerlooAgent');
@@ -66,6 +67,11 @@ class TFLUndergroundApp {
     }
   }
   async processQuery(query, threadId = null, userContext = {}) {
+    return await this._traceableProcessQuery(query, threadId, userContext);
+  }
+
+  _traceableProcessQuery = traceable(
+    async (query, threadId = null, userContext = {}) => {
     const startTime = Date.now();
     let graphState = new GraphState();
 
@@ -236,7 +242,16 @@ class TFLUndergroundApp {
         },
       };
     }
-  }
+    },
+    {
+      name: 'TFL_processQuery',
+      project_name: process.env.LANGCHAIN_PROJECT || 'TFL-Underground-AI-Assistant',
+      metadata: { 
+        version: '1.0.0',
+        agent_type: 'multi_agent_system'
+      }
+    }
+  );
 
   // Get conversation history
   async getConversationHistory(threadId, limit = 50) {
