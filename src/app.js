@@ -4,6 +4,14 @@ const { CircleAgent } = require('./agents/circleAgent');
 const { BakerlooAgent } = require('./agents/bakerlooAgent');
 const { DistrictAgent } = require('./agents/districtAgent');
 const { CentralAgent } = require('./agents/centralAgent');
+const { NorthernAgent } = require('./agents/northernAgent');
+const { PiccadillyAgent } = require('./agents/piccadillyAgent');
+const { VictoriaAgent } = require('./agents/victoriaAgent');
+const { JubileeAgent } = require('./agents/jubileeAgent');
+const { MetropolitanAgent } = require('./agents/metropolitanAgent');
+const { HammersmithCityAgent } = require('./agents/hammersmithCityAgent');
+const { WaterlooCityAgent } = require('./agents/waterlooCityAgent');
+const { ElizabethAgent } = require('./agents/elizabethAgent');
 const { StartNode } = require('./utils/startNode');
 const { GraphState } = require('./utils/graphState');
 const { ChatMemory } = require('./memory/chatMemory');
@@ -26,6 +34,14 @@ class TFLUndergroundApp {
       bakerloo: new BakerlooAgent(),
       district: new DistrictAgent(),
       central: new CentralAgent(),
+      northern: new NorthernAgent(),
+      piccadilly: new PiccadillyAgent(),
+      victoria: new VictoriaAgent(),
+      jubilee: new JubileeAgent(),
+      metropolitan: new MetropolitanAgent(),
+      hammersmith_city: new HammersmithCityAgent(),
+      waterloo_city: new WaterlooCityAgent(),
+      elizabeth: new ElizabethAgent(),
     };
 
     // Initialize workflow components
