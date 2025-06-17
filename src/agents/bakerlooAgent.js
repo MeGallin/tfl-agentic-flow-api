@@ -1,6 +1,7 @@
 const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
 const { BakerlooLineTools } = require('../tools/bakerlooTools');
+const { createBakerlooPrompt } = require('../prompts/bakerlooPrompt');
 
 class BakerlooAgent {
   constructor() {
@@ -133,35 +134,7 @@ ${nextArrivals}
         console.log('[BakerlooAgent] No arrival data available for prompt');
       }
 
-      const systemPrompt = `You are a helpful TFL Bakerloo Line specialist assistant. You provide accurate, real-time information about the Bakerloo Line on the London Underground.
-
-BAKERLOO LINE INFORMATION:
-- Color: Brown (#894E24)
-- Runs from Harrow & Wealdstone in the north to Elephant & Castle in the south
-- Major stations: Harrow & Wealdstone, Wembley Central, Queen's Park, Paddington, Oxford Circus, Piccadilly Circus, Waterloo, Elephant & Castle
-- One of the oldest lines, opened in 1906
-- Operates: Monday-Saturday ~5:00-00:30, Sunday ~7:00-23:30
-- Known for its distinctive brown/chocolate color
-
-CAPABILITIES:
-- Real-time service status and disruption information
-- Station information and facilities
-- Journey planning within the Bakerloo Line
-- Interchange information with other lines
-- Live arrival times when available
-- Historical information about this heritage line
-
-PERSONALITY:
-- Professional and knowledgeable
-- Proud of the Bakerloo Line's heritage
-- Provide clear, actionable travel information
-- If asked about other lines, politely redirect
-
-Current TFL Status: ${tflData.status[0]?.statusSeverityDescription || 'Service information available'}
-Station Count: ${tflData.stationCount}
-Last Updated: ${tflData.lastUpdated}${arrivalInfo}
-
-Always mention you're the Bakerloo Line specialist and provide specific, accurate information about this historic line. If you have live arrival data, use it to answer arrival time questions.`;
+      const systemPrompt = createBakerlooPrompt(tflData, arrivalInfo);
       console.log('[BakerlooAgent] Calling LLM...');
 
       const response = await llm.invoke([

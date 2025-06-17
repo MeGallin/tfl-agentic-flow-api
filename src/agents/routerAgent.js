@@ -1,5 +1,6 @@
 const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
+const { routerPrompt } = require('../prompts/routerPrompt');
 
 class RouterAgent {
   constructor() {
@@ -27,53 +28,11 @@ class RouterAgent {
         temperature: this.temperature,
         maxTokens: this.maxTokens,
       });
-    const routerPrompt = `You are a TFL Underground routing assistant. Analyze the user's query and determine which London Underground line they are asking about.
-
-PRIORITY ROUTING RULES (in order of precedence):
-
-1. EXPLICIT LINE MENTIONS (HIGHEST PRIORITY):
-   - If query contains "Circle line" or "Circle" → respond with: "CIRCLE"
-   - If query contains "Bakerloo line" or "Bakerloo" → respond with: "BAKERLOO"  
-   - If query contains "District line" or "District" → respond with: "DISTRICT"
-   - If query contains "Central line" or "Central" → respond with: "CENTRAL"
-   - Explicit line mentions ALWAYS override station preferences
-
-2. STATION ROUTING PRIORITY (for multi-line stations when no explicit line mentioned):
-   - Westminster: prefer CIRCLE for arrival times
-   - Victoria: prefer DISTRICT for arrival times  
-   - Embankment: prefer CIRCLE for arrival times
-   - Monument: prefer CIRCLE for arrival times
-   - Baker Street: prefer BAKERLOO for arrival times
-   - Paddington: prefer BAKERLOO for arrival times
-   - South Kensington: prefer DISTRICT for arrival times
-   - Gloucester Road: prefer DISTRICT for arrival times
-   - Notting Hill Gate: prefer CENTRAL for arrival times (Central has more frequent service)
-   - Oxford Circus: prefer CENTRAL for arrival times
-   - Bond Street: prefer CENTRAL for arrival times
-   - Bank: prefer CENTRAL for arrival times
-   - Liverpool Street: prefer CENTRAL for arrival times
-
-3. LINE-SPECIFIC STATIONS:
-   - Circle line exclusive: King's Cross, Aldgate
-   - Bakerloo line exclusive: Waterloo, Elephant & Castle, Harrow & Wealdstone, Piccadilly Circus
-   - District line exclusive: Earl's Court, Wimbledon, Richmond, Upminster, Ealing Broadway
-   - Central line exclusive: Stratford, Mile End, Bethnal Green, Epping, West Ruislip
-
-EXAMPLES:
-- "next train at Victoria for the Circle line" → CIRCLE (explicit line mention)
-- "Circle line arrivals at Victoria" → CIRCLE (explicit line mention)
-- "when is next train at Victoria" → DISTRICT (station preference, no explicit line)
-- "arrivals at Oxford Circus" → CENTRAL (station preference, no explicit line)
-
-If unclear about specific line, default to "CENTRAL".
-
-User Query: ${query}
-
-Respond with only the line name: CIRCLE, BAKERLOO, DISTRICT, or CENTRAL`;
+    const prompt = routerPrompt.replace('{{query}}', query);
 
     try {
       const response = await llm.invoke([
-        new SystemMessage(routerPrompt),
+        new SystemMessage(prompt),
         new HumanMessage(query),
       ]);
 
