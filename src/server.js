@@ -15,6 +15,8 @@ app.use(
         process.env.CORS_ORIGIN,
         'http://localhost:3000',
         'http://localhost:5173',
+        'https://tfl.livenotice.co.uk',
+        'https://www.tfl.livenotice.co.uk',
       ];
       if (
         !origin ||
