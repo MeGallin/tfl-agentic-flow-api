@@ -105,6 +105,47 @@ class TFLUndergroundApp {
         throw new Error('Router failed to select an agent');
       }
 
+      // Handle content filtering responses
+      if (routerResult.selectedAgent === 'OFF_TOPIC' || routerResult.selectedAgent === 'INAPPROPRIATE') {
+        console.log(`[TFL App] Query filtered: ${routerResult.selectedAgent}`);
+        
+        // Save filtered query to memory if threadId provided
+        if (threadId) {
+          try {
+            await this.memory.saveMessage(threadId, 'user', query, {
+              userContext,
+              timestamp: new Date().toISOString(),
+            });
+            
+            await this.memory.saveMessage(threadId, 'assistant', routerResult.message, {
+              agent: 'filter',
+              confidence: 1.0,
+              filtered: true,
+              filterType: routerResult.selectedAgent,
+              processingTime: Date.now() - startTime,
+            });
+          } catch (memoryError) {
+            console.error('[TFL App] Memory save error for filtered query:', memoryError);
+          }
+        }
+        
+        return {
+          response: routerResult.message,
+          agent: 'filter',
+          lineColor: '#FFA500', // Orange for filtered content
+          confidence: 1.0,
+          threadId: threadId || graphState.state.threadId,
+          filtered: true,
+          filterType: routerResult.selectedAgent,
+          metadata: {
+            processingTime: Date.now() - startTime,
+            timestamp: new Date().toISOString(),
+            nodeSequence: ['start', 'router', 'filter'],
+            llmModel: this.model,
+          },
+        };
+      }
+
       // Update state with router decision
       graphState.setSelectedAgent(
         routerResult.selectedAgent,

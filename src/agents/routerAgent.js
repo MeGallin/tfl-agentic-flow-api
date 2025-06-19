@@ -38,6 +38,26 @@ class RouterAgent {
       ]);
 
       const routedAgent = response.content.trim().toUpperCase();
+      
+      // Handle content filtering responses
+      if (routedAgent === 'OFF_TOPIC') {
+        return {
+          agent: 'OFF_TOPIC',
+          confidence: 1.0,
+          reasoning: 'Query rejected - not related to London Underground/TfL',
+          message: 'I\'m here to help with London Underground (Tube) and TfL queries only. Please ask me about train arrivals, station information, line status, journey planning, or other Underground-related topics!'
+        };
+      }
+      
+      if (routedAgent === 'INAPPROPRIATE') {
+        return {
+          agent: 'INAPPROPRIATE',
+          confidence: 1.0,
+          reasoning: 'Query rejected - inappropriate content detected',
+          message: 'I\'m here to provide helpful London Underground information in a friendly and respectful manner. Please ask me about Tube services, stations, or journey planning!'
+        };
+      }
+      
       const validAgents = [
         'CIRCLE', 'BAKERLOO', 'DISTRICT', 'CENTRAL', 
         'NORTHERN', 'PICCADILLY', 'VICTORIA', 'JUBILEE',
