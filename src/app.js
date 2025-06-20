@@ -13,6 +13,7 @@ const { MetropolitanAgent } = require('./agents/metropolitanAgent');
 const { HammersmithCityAgent } = require('./agents/hammersmithCityAgent');
 const { WaterlooCityAgent } = require('./agents/waterlooCityAgent');
 const { ElizabethAgent } = require('./agents/elizabethAgent');
+const { StatusAgent } = require('./agents/statusAgent');
 const { StartNode } = require('./utils/startNode');
 const { GraphState } = require('./utils/graphState');
 const { ChatMemory } = require('./memory/chatMemory');
@@ -43,6 +44,7 @@ class TFLUndergroundApp {
       hammersmith_city: new HammersmithCityAgent(),
       waterloo_city: new WaterlooCityAgent(),
       elizabeth: new ElizabethAgent(),
+      status: new StatusAgent(),
     };
 
     // Initialize workflow components
@@ -365,6 +367,7 @@ class TFLUndergroundApp {
         'Bakerloo Line specialist',
         'District Line specialist',
         'Central Line specialist',
+        'Network Status specialist',
         'Journey planning',
         'Service status updates',
         'Station information',

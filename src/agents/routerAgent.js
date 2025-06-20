@@ -67,18 +67,18 @@ class RouterAgent {
       const validAgents = [
         'CIRCLE', 'BAKERLOO', 'DISTRICT', 'CENTRAL', 
         'NORTHERN', 'PICCADILLY', 'VICTORIA', 'JUBILEE',
-        'METROPOLITAN', 'HAMMERSMITH_CITY', 'WATERLOO_CITY', 'ELIZABETH'
+        'METROPOLITAN', 'HAMMERSMITH_CITY', 'WATERLOO_CITY', 'ELIZABETH', 'STATUS'
       ];
 
       return {
-        agent: validAgents.includes(routedAgent) ? routedAgent : 'CENTRAL',
+        agent: validAgents.includes(routedAgent) ? routedAgent : 'STATUS',
         confidence: this.calculateConfidence(query, routedAgent),
         reasoning: `Query routed to ${routedAgent} based on content analysis`,
       };
     } catch (error) {
       console.error('Router error:', error);
       return {
-        agent: 'CENTRAL',
+        agent: 'STATUS',
         confidence: 0.5,
         reasoning: 'Fallback routing due to error',
       };
@@ -322,6 +322,24 @@ class RouterAgent {
         'burnham',
         'taplow',
       ],
+      STATUS: [
+        'status',
+        'service',
+        'disruption',
+        'delay',
+        'network',
+        'all lines',
+        'overall',
+        'running',
+        'good service',
+        'suspended',
+        'closed',
+        'problem',
+        'issue',
+        'fault',
+        'update',
+        'overview',
+      ],
     };
 
     // Multi-line stations that can be served by multiple agents
@@ -380,6 +398,7 @@ class RouterAgent {
       HAMMERSMITH_CITY: /\b(hammersmith\s*&?\s*city\s*line|hammersmith\s*city)\b/i,
       WATERLOO_CITY: /\b(waterloo\s*&?\s*city\s*line|waterloo\s*city)\b/i,
       ELIZABETH: /\b(elizabeth\s*line|elizabeth|crossrail)\b/i,
+      STATUS: /\b(network\s*status|service\s*status|all\s*lines|overall\s*status|disruption|service\s*update)\b/i,
     };
 
     // If query explicitly mentions a line, give high confidence if routed correctly

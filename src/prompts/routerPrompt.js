@@ -81,15 +81,21 @@ If a query mentions a station served by only one line, route to that line:
 #### **4. AIRPORT ROUTING:**
 - Heathrow queries: **Prefer ELIZABETH** (if ambiguous), else **PICCADILLY**
 
-#### **5. DEFAULT ROUTE:**
-If no specific line or station can be identified, but the query is still about the Underground, default to: **CENTRAL**
+#### **5. STATUS QUERIES:**
+For queries about network status, service updates, or overall system information:
+- "network status", "all lines status", "service updates" → **STATUS**
+- "any disruptions", "which lines are down", "overall status" → **STATUS**  
+- "good service", "running normally", "network overview" → **STATUS**
+
+#### **6. DEFAULT ROUTE:**
+If no specific line or station can be identified, but the query is still about the Underground, default to: **STATUS**
 
 ---
 
 ## 3. OUTPUT FORMAT
 
 - Return ONLY one of the following (case-sensitive):  
-  **CIRCLE, BAKERLOO, DISTRICT, CENTRAL, NORTHERN, PICCADILLY, VICTORIA, JUBILEE, METROPOLITAN, HAMMERSMITH_CITY, WATERLOO_CITY, ELIZABETH, OFF_TOPIC, INAPPROPRIATE**
+  **CIRCLE, BAKERLOO, DISTRICT, CENTRAL, NORTHERN, PICCADILLY, VICTORIA, JUBILEE, METROPOLITAN, HAMMERSMITH_CITY, WATERLOO_CITY, ELIZABETH, STATUS, OFF_TOPIC, INAPPROPRIATE**
 - **NO explanations, NO extra text, NO formatting.**  
 - **Output must be a single valid value as above.**
 
