@@ -30,6 +30,15 @@ class StatusAgent {
       let statusData;
 
       switch (queryType) {
+        case 'journey_planning':
+          // For journey queries, only get minimal status data
+          statusData = { 
+            queryType: 'journey_planning',
+            query: query,
+            lastUpdated: new Date().toISOString(),
+            isJourneyQuery: true
+          };
+          break;
         case 'disrupted':
           statusData = await this.tools.getDisruptedLines();
           break;
@@ -95,6 +104,29 @@ class StatusAgent {
 
   detectStatusQueryType(query) {
     const lowerQuery = query.toLowerCase();
+
+    // Check for journey planning queries first
+    const journeyKeywords = [
+      'how do i get',
+      'how to get',
+      'travel from',
+      'travel to',
+      'go from',
+      'go to',
+      'from',
+      'to',
+      'journey',
+      'route',
+      'directions',
+      'plan'
+    ];
+
+    // Check if it's a journey query (contains "from...to" pattern or journey keywords)
+    if (journeyKeywords.some((keyword) => lowerQuery.includes(keyword)) || 
+        /from.*to/.test(lowerQuery) || 
+        /how.*get.*to/.test(lowerQuery)) {
+      return 'journey_planning';
+    }
 
     // Check for disruption-related queries
     const disruptionKeywords = [
