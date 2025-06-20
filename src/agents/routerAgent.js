@@ -29,6 +29,12 @@ class RouterAgent {
         temperature: this.temperature,
         maxTokens: this.maxTokens,
       });
+    
+    // Ensure routerPrompt is available
+    if (!routerPrompt) {
+      throw new Error('Router prompt is not defined. Check routerPrompt.js export.');
+    }
+    
     const prompt = routerPrompt.replace('{{query}}', query);
 
     try {
