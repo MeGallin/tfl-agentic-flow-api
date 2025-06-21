@@ -9,6 +9,7 @@ This is a multi-agent conversational AI system for London Underground transport 
 - **Agent Structure**: Each line has dedicated Agent, Tools, and Prompt classes
 - **Shared Components**: Common LLM instance, memory system, and utilities
 - **Real-time Data**: TFL API integration with error handling and fallbacks
+- **Frontend**: React client with Whisper-based speech recognition
 
 ## Code Style & Standards
 - Use CommonJS modules (`require`/`module.exports`)
@@ -111,3 +112,12 @@ LANGCHAIN_PROJECT=TFL-Underground-AI-Assistant
 - Arrival times in seconds, convert to minutes for display
 - Filter API responses to prevent token overflow
 - Handle both hub stations and individual platforms
+
+## Frontend Integration
+- **Speech Recognition**: Replaced react-speech-recognition with Whisper-Web
+- **Technology**: OpenAI Whisper via @xenova/transformers running in browser
+- **Cross-browser Support**: Works in all modern browsers with WebAssembly
+- **Graceful Degradation**: Automatically disables if model fails to load
+- **Privacy**: All speech processing happens locally, no server requests
+- **Performance**: ~39MB model download on first use, cached thereafter
+- **Error Handling**: Comprehensive fallbacks for network/loading issues
