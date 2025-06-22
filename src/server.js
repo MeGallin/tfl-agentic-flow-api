@@ -58,6 +58,8 @@ app.post('/api/chat', async (req, res) => {
       lineColor: result.lineColor,
       confidence: result.confidence,
       tflData: result.tflData,
+      requiresConfirmation: result.requiresConfirmation,
+      awaitingConfirmation: result.awaitingConfirmation,
       metadata: result.metadata,
       timestamp: new Date().toISOString(),
     });
@@ -71,11 +73,98 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+// Enhanced chat endpoint with confirmation support
+app.post('/api/chat/confirm', async (req, res) => {
+  try {
+    const { query, threadId, userContext, userConfirmation } = req.body;
+
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        error: 'Query is required',
+      });
+    }
+
+    if (userConfirmation === undefined || userConfirmation === null) {
+      return res.status(400).json({
+        success: false,
+        error: 'User confirmation is required for this endpoint',
+      });
+    }
+
+    const result = await tflApp.processQueryWithConfirmation(query, threadId, userContext, userConfirmation);
+
+    res.json({
+      success: true,
+      response: result.response,
+      threadId: result.threadId,
+      agent: result.agent,
+      lineColor: result.lineColor,
+      confidence: result.confidence,
+      tflData: result.tflData,
+      requiresConfirmation: result.requiresConfirmation,
+      awaitingConfirmation: result.awaitingConfirmation,
+      metadata: result.metadata,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Chat confirmation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process confirmation request',
+      message: error.message,
+    });
+  }
+});
+
+// Streaming chat endpoint
+app.get('/api/chat/stream/:threadId', async (req, res) => {
+  try {
+    const { threadId } = req.params;
+    const { query, userContext } = req.query;
+
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        error: 'Query parameter is required',
+      });
+    }
+
+    // Set up Server-Sent Events
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control'
+    });
+
+    // Stream the query processing
+    try {
+      for await (const update of tflApp.streamQuery(query, threadId, JSON.parse(userContext || '{}'))) {
+        res.write(`data: ${JSON.stringify(update)}\n\n`);
+      }
+      res.write('data: {"done": true}\n\n');
+    } catch (streamError) {
+      res.write(`data: ${JSON.stringify({ error: true, message: streamError.message })}\n\n`);
+    } finally {
+      res.end();
+    }
+  } catch (error) {
+    console.error('Streaming chat error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to stream chat',
+      message: error.message,
+    });
+  }
+});
+
 // Get conversation history
 app.get('/api/conversations/:threadId', async (req, res) => {
   try {
     const { threadId } = req.params;
-    const { limit } = req.query;
+    const { limit, includeContext } = req.query;
 
     const history = await tflApp.getConversationHistory(
       threadId,
@@ -86,7 +175,8 @@ app.get('/api/conversations/:threadId', async (req, res) => {
       success: true,
       threadId,
       history,
-      count: history.length,
+      count: Array.isArray(history) ? history.length : history.recentMessages?.length || 0,
+      enhanced: !Array.isArray(history),
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -94,6 +184,67 @@ app.get('/api/conversations/:threadId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to get conversation history',
+      message: error.message,
+    });
+  }
+});
+
+// Get conversation insights
+app.get('/api/conversations/:threadId/insights', async (req, res) => {
+  try {
+    const { threadId } = req.params;
+
+    const insights = await tflApp.getConversationInsights(threadId);
+
+    if (!insights) {
+      return res.status(404).json({
+        success: false,
+        error: 'No insights available for this conversation',
+      });
+    }
+
+    res.json({
+      success: true,
+      threadId,
+      insights,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Conversation insights error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get conversation insights',
+      message: error.message,
+    });
+  }
+});
+
+// Trigger manual summarization
+app.post('/api/conversations/:threadId/summarize', async (req, res) => {
+  try {
+    const { threadId } = req.params;
+
+    const summaryId = await tflApp.triggerSummarization(threadId);
+
+    if (!summaryId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Unable to create summary - no messages to summarize or feature not available',
+      });
+    }
+
+    res.json({
+      success: true,
+      threadId,
+      summaryId,
+      message: 'Conversation summary created successfully',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Manual summarization error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create conversation summary',
       message: error.message,
     });
   }

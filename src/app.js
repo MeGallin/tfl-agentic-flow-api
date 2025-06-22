@@ -1,5 +1,5 @@
 const { ChatOpenAI } = require('@langchain/openai');
-const { traceable } = require('langsmith/traceable');
+// LangSmith tracing removed
 const { RouterAgent } = require('./agents/routerAgent');
 const { CircleAgent } = require('./agents/circleAgent');
 const { BakerlooAgent } = require('./agents/bakerlooAgent');
@@ -17,6 +17,9 @@ const { StatusAgent } = require('./agents/statusAgent');
 const { StartNode } = require('./utils/startNode');
 const { GraphState } = require('./utils/graphState');
 const { ChatMemory } = require('./memory/chatMemory');
+const { EnhancedMemory } = require('./memory/enhancedMemory');
+const { TFLWorkflow } = require('./workflows/tflWorkflow');
+const { CollaborativeWorkflow } = require('./workflows/collaborativeWorkflow');
 
 class TFLUndergroundApp {
   constructor() {
@@ -49,7 +52,9 @@ class TFLUndergroundApp {
 
     // Initialize workflow components
     this.startNode = new StartNode();
-    this.memory = new ChatMemory();
+    this.memory = new EnhancedMemory(); // Use enhanced memory with summarization
+    this.workflow = null; // Will be initialized after memory
+    this.collaborativeWorkflow = null; // Will be initialized after memory
 
     // Initialize the application
     this.initialize();
@@ -61,6 +66,14 @@ class TFLUndergroundApp {
       await this.memory.initialize();
       console.log('[TFL App] Database initialized successfully');
 
+      // Initialize LangGraph workflow
+      this.workflow = new TFLWorkflow(this.agents, this.memory, this.sharedLLM);
+      console.log('[TFL App] LangGraph workflow initialized successfully');
+
+      // Initialize collaborative workflow
+      this.collaborativeWorkflow = new CollaborativeWorkflow(this.agents, this.memory, this.sharedLLM);
+      console.log('[TFL App] Collaborative workflow initialized successfully');
+
       // Log agent initialization
       console.log('[TFL App] Agents initialized:', Object.keys(this.agents));
     } catch (error) {
@@ -69,12 +82,117 @@ class TFLUndergroundApp {
     }
   }
   async processQuery(query, threadId = null, userContext = {}) {
-    return await this._traceableProcessQuery(query, threadId, userContext);
+    return await this._processQuery(query, threadId, userContext);
   }
 
-  _traceableProcessQuery = traceable(
-    async (query, threadId = null, userContext = {}) => {
-    const startTime = Date.now();
+  async processQueryWithConfirmation(query, threadId = null, userContext = {}, userConfirmation = null) {
+    return await this._processQueryWithConfirmation(query, threadId, userContext, userConfirmation);
+  }
+
+  _processQuery = async (query, threadId = null, userContext = {}) => {
+      const startTime = Date.now();
+
+      try {
+        console.log(`[TFL App] Processing query with LangGraph workflow: "${query.substring(0, 100)}..."`);
+
+        // Prepare initial state for workflow
+        const initialState = {
+          query,
+          threadId,
+          userContext,
+          conversationHistory: threadId ? await this.getConversationHistory(threadId, 10) : []
+        };
+
+        // Determine whether to use collaborative workflow
+        const useCollaborative = this.shouldUseCollaborativeWorkflow(query);
+        
+        // Execute the appropriate workflow
+        const result = useCollaborative 
+          ? await this.collaborativeWorkflow.execute(initialState)
+          : await this.workflow.execute(initialState);
+
+        // Format response for compatibility with existing API
+        const response = {
+          response: result.synthesizedResponse || result.agentResponse || result.error?.message || "I apologize, but I couldn't process your request.",
+          agent: result.primaryAgent || result.selectedAgent || 'unknown',
+          lineColor: this.getAgentLineColor(result.primaryAgent || result.selectedAgent),
+          confidence: result.confidence || 0.1,
+          threadId: result.threadId,
+          tflData: result.tflData,
+          collaborative: useCollaborative,
+          agentsUsed: result.metadata?.agentsUsed || [result.selectedAgent].filter(Boolean),
+          metadata: {
+            ...result.metadata,
+            processingTime: result.metadata?.processingTime || (Date.now() - startTime),
+            timestamp: new Date().toISOString(),
+            workflowUsed: useCollaborative ? 'collaborative' : 'standard',
+            llmModel: this.model
+          }
+        };
+
+        console.log(`[TFL App] Query processed successfully with workflow in ${response.metadata.processingTime}ms`);
+        return response;
+
+      } catch (error) {
+        console.error('[TFL App] Workflow processing error:', error);
+        
+        // Fallback to legacy processing if workflow fails
+        return await this._legacyProcessQuery(query, threadId, userContext, startTime);
+      }
+    };
+
+  _processQueryWithConfirmation = async (query, threadId = null, userContext = {}, userConfirmation = null) => {
+      const startTime = Date.now();
+
+      try {
+        console.log(`[TFL App] Processing query with confirmation: "${query.substring(0, 100)}..."`);
+
+        // Prepare initial state for workflow with confirmation
+        const initialState = {
+          query,
+          threadId,
+          userContext,
+          userConfirmation,
+          conversationHistory: threadId ? await this.getConversationHistory(threadId, 10) : []
+        };
+
+        // Determine whether to use collaborative workflow
+        const useCollaborative = this.shouldUseCollaborativeWorkflow(query);
+        
+        // Execute the appropriate workflow
+        const result = useCollaborative 
+          ? await this.collaborativeWorkflow.execute(initialState)
+          : await this.workflow.execute(initialState);
+
+        // Format response
+        const response = {
+          response: result.agentResponse,
+          agent: result.selectedAgent || 'unknown',
+          lineColor: this.getAgentLineColor(result.selectedAgent),
+          confidence: result.confidence || 0.1,
+          threadId: result.threadId,
+          tflData: result.tflData,
+          requiresConfirmation: result.requiresConfirmation,
+          awaitingConfirmation: result.metadata?.awaitingConfirmation,
+          metadata: {
+            ...result.metadata,
+            processingTime: result.metadata?.processingTime || (Date.now() - startTime),
+            timestamp: new Date().toISOString(),
+            workflowUsed: true,
+            llmModel: this.model
+          }
+        };
+
+        return response;
+
+      } catch (error) {
+        console.error('[TFL App] Workflow confirmation processing error:', error);
+        throw error;
+      }
+    };
+
+  // Legacy processing method as fallback
+  async _legacyProcessQuery(query, threadId, userContext, startTime) {
     let graphState = new GraphState();
 
     try {
@@ -285,16 +403,98 @@ class TFLUndergroundApp {
         },
       };
     }
-    },
-    {
-      name: 'TFL_processQuery',
-      project_name: process.env.LANGCHAIN_PROJECT || 'TFL-Underground-AI-Assistant',
-      metadata: { 
-        version: '1.0.0',
-        agent_type: 'multi_agent_system'
+  }
+
+  // Helper method to determine if collaborative workflow should be used
+  shouldUseCollaborativeWorkflow(query) {
+    const collaborativeKeywords = [
+      'journey from .+ to',
+      'travel from .+ to',
+      'route from .+ to',
+      'best way from .+ to',
+      'how to get from .+ to',
+      'compare',
+      'alternative',
+      'interchange',
+      'change at',
+      'multiple lines',
+      'all lines',
+      'network status',
+      'overall service',
+      'which lines serve',
+      'accessibility at'
+    ];
+
+    const queryLower = query.toLowerCase();
+    return collaborativeKeywords.some(keyword => 
+      new RegExp(keyword, 'i').test(queryLower)
+    );
+  }
+
+  // Helper method to get agent line colors
+  getAgentLineColor(agentName) {
+    const lineColors = {
+      circle: '#FFD329',
+      bakerloo: '#B36305', 
+      district: '#00782A',
+      central: '#E32017',
+      northern: '#000000',
+      piccadilly: '#003688',
+      victoria: '#0098D4',
+      jubilee: '#A0A5A9',
+      metropolitan: '#9B0056',
+      hammersmith_city: '#F3A9BB',
+      waterloo_city: '#95CDBA',
+      elizabeth: '#6950A1',
+      status: '#0098D4',
+      filter: '#FFA500',
+      fallback: '#DC143C',
+      error: '#DC143C'
+    };
+    return lineColors[agentName] || '#666666';
+  }
+
+  // Streaming query processing
+  async *streamQuery(query, threadId = null, userContext = {}) {
+    console.log(`[TFL App] Starting streaming query: "${query.substring(0, 100)}..."`);
+    
+    try {
+      const initialState = {
+        query,
+        threadId,
+        userContext,
+        conversationHistory: threadId ? await this.getConversationHistory(threadId, 10) : [],
+        streamingEnabled: true
+      };
+
+      // Stream workflow execution
+      for await (const step of this.workflow.stream(initialState)) {
+        const stepName = Object.keys(step)[0];
+        const stepState = step[stepName];
+        
+        // Format streaming update
+        const update = {
+          step: stepName,
+          agent: stepState.selectedAgent,
+          partialResponse: stepState.agentResponse,
+          confidence: stepState.confidence,
+          metadata: {
+            timestamp: new Date().toISOString(),
+            streaming: true
+          }
+        };
+        
+        yield update;
       }
+    } catch (error) {
+      console.error('[TFL App] Streaming error:', error);
+      yield {
+        error: true,
+        message: error.message,
+        timestamp: new Date().toISOString()
+      };
     }
-  );
+  }
 
   // Get conversation history
   async getConversationHistory(threadId, limit = 50) {
@@ -303,6 +503,32 @@ class TFLUndergroundApp {
     } catch (error) {
       console.error('[TFL App] Error getting conversation history:', error);
       return [];
+    }
+  }
+
+  // Get conversation insights
+  async getConversationInsights(threadId) {
+    try {
+      if (this.memory.getConversationInsights) {
+        return await this.memory.getConversationInsights(threadId);
+      }
+      return null;
+    } catch (error) {
+      console.error('[TFL App] Error getting conversation insights:', error);
+      return null;
+    }
+  }
+
+  // Trigger manual summarization
+  async triggerSummarization(threadId) {
+    try {
+      if (this.memory.triggerSummary) {
+        return await this.memory.triggerSummary(threadId);
+      }
+      return null;
+    } catch (error) {
+      console.error('[TFL App] Error triggering summarization:', error);
+      return null;
     }
   }
 

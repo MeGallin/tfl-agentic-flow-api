@@ -1,6 +1,6 @@
 const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
-const { traceable } = require('langsmith/traceable');
+// LangSmith tracing removed
 const { routerPrompt } = require('../prompts/routerPrompt');
 
 class RouterAgent {
@@ -21,7 +21,7 @@ class RouterAgent {
     };
   }
 
-  routeQuery = traceable(async (query, sharedLLM = null) => {
+  routeQuery = async (query, sharedLLM = null) => {
     const llm =
       sharedLLM ||
       new ChatOpenAI({
@@ -83,10 +83,7 @@ class RouterAgent {
         reasoning: 'Fallback routing due to error',
       };
     }
-  }, {
-    name: 'RouterAgent_routeQuery',
-    project_name: process.env.LANGCHAIN_PROJECT || 'TFL-Underground-AI-Assistant'
-  });
+  };
 
   calculateConfidence(query, routedAgent) {
     const keywords = {

@@ -1,6 +1,6 @@
 const { ChatOpenAI } = require('@langchain/openai');
 const { SystemMessage, HumanMessage } = require('@langchain/core/messages');
-const { traceable } = require('langsmith/traceable');
+// LangSmith tracing removed
 const { JubileeLineTools } = require('../tools/jubileeTools');
 const { createJubileePrompt } = require('../prompts/jubileePrompt');
 const { todays_date_time } = require('../tools/dateTimeTools');
@@ -13,7 +13,7 @@ class JubileeAgent {
     this.lineColor = '#A0A5A9'; // TFL Jubilee line grey
   }
 
-  processQuery = traceable(async (query, sharedLLM = null, context = {}) => {
+  processQuery = async (query, sharedLLM = null, context = {}) => {
     console.log('[JubileeAgent] Starting to process query...');
 
     // Initialize tflData outside try block so it's available in catch
@@ -208,14 +208,7 @@ ${nextArrivals}
         error: error.message,
       };
     }
-  }, {
-    name: 'JubileeAgent_processQuery',
-    project_name: process.env.LANGCHAIN_PROJECT || 'TFL-Underground-AI-Assistant',
-    metadata: { 
-      line: 'Jubilee',
-      agent_type: 'line_specialist'
-    }
-  });
+  };
 
   async getStationInfo(stationName) {
     return await this.tools.getStationInfo(stationName);
