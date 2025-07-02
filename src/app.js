@@ -71,7 +71,11 @@ class TFLUndergroundApp {
       console.log('[TFL App] LangGraph workflow initialized successfully');
 
       // Initialize collaborative workflow
-      this.collaborativeWorkflow = new CollaborativeWorkflow(this.agents, this.memory, this.sharedLLM);
+      this.collaborativeWorkflow = new CollaborativeWorkflow(
+        this.agents,
+        this.memory,
+        this.sharedLLM,
+      );
       console.log('[TFL App] Collaborative workflow initialized successfully');
 
       // Log agent initialization
@@ -85,111 +89,148 @@ class TFLUndergroundApp {
     return await this._processQuery(query, threadId, userContext);
   }
 
-  async processQueryWithConfirmation(query, threadId = null, userContext = {}, userConfirmation = null) {
-    return await this._processQueryWithConfirmation(query, threadId, userContext, userConfirmation);
+  async processQueryWithConfirmation(
+    query,
+    threadId = null,
+    userContext = {},
+    userConfirmation = null,
+  ) {
+    return await this._processQueryWithConfirmation(
+      query,
+      threadId,
+      userContext,
+      userConfirmation,
+    );
   }
 
   _processQuery = async (query, threadId = null, userContext = {}) => {
-      const startTime = Date.now();
+    const startTime = Date.now();
 
-      try {
-        console.log(`[TFL App] Processing query with LangGraph workflow: "${query.substring(0, 100)}..."`);
+    try {
+      console.log(
+        `[TFL App] Processing query with LangGraph workflow: "${query.substring(0, 100)}..."`,
+      );
 
-        // Prepare initial state for workflow
-        const initialState = {
-          query,
-          threadId,
-          userContext,
-          conversationHistory: threadId ? await this.getConversationHistory(threadId, 10) : []
-        };
+      // Prepare initial state for workflow
+      const initialState = {
+        query,
+        threadId,
+        userContext,
+        conversationHistory: threadId
+          ? await this.getConversationHistory(threadId, 10)
+          : [],
+      };
 
-        // Determine whether to use collaborative workflow
-        const useCollaborative = this.shouldUseCollaborativeWorkflow(query);
-        
-        // Execute the appropriate workflow
-        const result = useCollaborative 
-          ? await this.collaborativeWorkflow.execute(initialState)
-          : await this.workflow.execute(initialState);
+      // Determine whether to use collaborative workflow
+      const useCollaborative = this.shouldUseCollaborativeWorkflow(query);
 
-        // Format response for compatibility with existing API
-        const response = {
-          response: result.synthesizedResponse || result.agentResponse || result.error?.message || "I apologize, but I couldn't process your request.",
-          agent: result.primaryAgent || result.selectedAgent || 'unknown',
-          lineColor: this.getAgentLineColor(result.primaryAgent || result.selectedAgent),
-          confidence: result.confidence || 0.1,
-          threadId: result.threadId,
-          tflData: result.tflData,
-          collaborative: useCollaborative,
-          agentsUsed: result.metadata?.agentsUsed || [result.selectedAgent].filter(Boolean),
-          metadata: {
-            ...result.metadata,
-            processingTime: result.metadata?.processingTime || (Date.now() - startTime),
-            timestamp: new Date().toISOString(),
-            workflowUsed: useCollaborative ? 'collaborative' : 'standard',
-            llmModel: this.model
-          }
-        };
+      // Execute the appropriate workflow
+      const result = useCollaborative
+        ? await this.collaborativeWorkflow.execute(initialState)
+        : await this.workflow.execute(initialState);
 
-        console.log(`[TFL App] Query processed successfully with workflow in ${response.metadata.processingTime}ms`);
-        return response;
+      // Format response for compatibility with existing API
+      const response = {
+        response:
+          result.synthesizedResponse ||
+          result.agentResponse ||
+          result.error?.message ||
+          "I apologize, but I couldn't process your request.",
+        agent: result.primaryAgent || result.selectedAgent || 'unknown',
+        lineColor: this.getAgentLineColor(
+          result.primaryAgent || result.selectedAgent,
+        ),
+        confidence: result.confidence || 0.1,
+        threadId: result.threadId,
+        tflData: result.tflData,
+        collaborative: useCollaborative,
+        agentsUsed:
+          result.metadata?.agentsUsed || [result.selectedAgent].filter(Boolean),
+        metadata: {
+          ...result.metadata,
+          processingTime:
+            result.metadata?.processingTime || Date.now() - startTime,
+          timestamp: new Date().toISOString(),
+          workflowUsed: useCollaborative ? 'collaborative' : 'standard',
+          llmModel: this.model,
+        },
+      };
 
-      } catch (error) {
-        console.error('[TFL App] Workflow processing error:', error);
-        
-        // Fallback to legacy processing if workflow fails
-        return await this._legacyProcessQuery(query, threadId, userContext, startTime);
-      }
-    };
+      console.log(
+        `[TFL App] Query processed successfully with workflow in ${response.metadata.processingTime}ms`,
+      );
+      return response;
+    } catch (error) {
+      console.error('[TFL App] Workflow processing error:', error);
 
-  _processQueryWithConfirmation = async (query, threadId = null, userContext = {}, userConfirmation = null) => {
-      const startTime = Date.now();
+      // Fallback to legacy processing if workflow fails
+      return await this._legacyProcessQuery(
+        query,
+        threadId,
+        userContext,
+        startTime,
+      );
+    }
+  };
 
-      try {
-        console.log(`[TFL App] Processing query with confirmation: "${query.substring(0, 100)}..."`);
+  _processQueryWithConfirmation = async (
+    query,
+    threadId = null,
+    userContext = {},
+    userConfirmation = null,
+  ) => {
+    const startTime = Date.now();
 
-        // Prepare initial state for workflow with confirmation
-        const initialState = {
-          query,
-          threadId,
-          userContext,
-          userConfirmation,
-          conversationHistory: threadId ? await this.getConversationHistory(threadId, 10) : []
-        };
+    try {
+      console.log(
+        `[TFL App] Processing query with confirmation: "${query.substring(0, 100)}..."`,
+      );
 
-        // Determine whether to use collaborative workflow
-        const useCollaborative = this.shouldUseCollaborativeWorkflow(query);
-        
-        // Execute the appropriate workflow
-        const result = useCollaborative 
-          ? await this.collaborativeWorkflow.execute(initialState)
-          : await this.workflow.execute(initialState);
+      // Prepare initial state for workflow with confirmation
+      const initialState = {
+        query,
+        threadId,
+        userContext,
+        userConfirmation,
+        conversationHistory: threadId
+          ? await this.getConversationHistory(threadId, 10)
+          : [],
+      };
 
-        // Format response
-        const response = {
-          response: result.agentResponse,
-          agent: result.selectedAgent || 'unknown',
-          lineColor: this.getAgentLineColor(result.selectedAgent),
-          confidence: result.confidence || 0.1,
-          threadId: result.threadId,
-          tflData: result.tflData,
-          requiresConfirmation: result.requiresConfirmation,
-          awaitingConfirmation: result.metadata?.awaitingConfirmation,
-          metadata: {
-            ...result.metadata,
-            processingTime: result.metadata?.processingTime || (Date.now() - startTime),
-            timestamp: new Date().toISOString(),
-            workflowUsed: true,
-            llmModel: this.model
-          }
-        };
+      // Determine whether to use collaborative workflow
+      const useCollaborative = this.shouldUseCollaborativeWorkflow(query);
 
-        return response;
+      // Execute the appropriate workflow
+      const result = useCollaborative
+        ? await this.collaborativeWorkflow.execute(initialState)
+        : await this.workflow.execute(initialState);
 
-      } catch (error) {
-        console.error('[TFL App] Workflow confirmation processing error:', error);
-        throw error;
-      }
-    };
+      // Format response
+      const response = {
+        response: result.agentResponse,
+        agent: result.selectedAgent || 'unknown',
+        lineColor: this.getAgentLineColor(result.selectedAgent),
+        confidence: result.confidence || 0.1,
+        threadId: result.threadId,
+        tflData: result.tflData,
+        requiresConfirmation: result.requiresConfirmation,
+        awaitingConfirmation: result.metadata?.awaitingConfirmation,
+        metadata: {
+          ...result.metadata,
+          processingTime:
+            result.metadata?.processingTime || Date.now() - startTime,
+          timestamp: new Date().toISOString(),
+          workflowUsed: true,
+          llmModel: this.model,
+        },
+      };
+
+      return response;
+    } catch (error) {
+      console.error('[TFL App] Workflow confirmation processing error:', error);
+      throw error;
+    }
+  };
 
   // Legacy processing method as fallback
   async _legacyProcessQuery(query, threadId, userContext, startTime) {
@@ -226,9 +267,12 @@ class TFLUndergroundApp {
       }
 
       // Handle content filtering responses
-      if (routerResult.selectedAgent === 'OFF_TOPIC' || routerResult.selectedAgent === 'INAPPROPRIATE') {
+      if (
+        routerResult.selectedAgent === 'OFF_TOPIC' ||
+        routerResult.selectedAgent === 'INAPPROPRIATE'
+      ) {
         console.log(`[TFL App] Query filtered: ${routerResult.selectedAgent}`);
-        
+
         // Save filtered query to memory if threadId provided
         if (threadId) {
           try {
@@ -236,19 +280,27 @@ class TFLUndergroundApp {
               userContext,
               timestamp: new Date().toISOString(),
             });
-            
-            await this.memory.saveMessage(threadId, 'assistant', routerResult.message, {
-              agent: 'filter',
-              confidence: 1.0,
-              filtered: true,
-              filterType: routerResult.selectedAgent,
-              processingTime: Date.now() - startTime,
-            });
+
+            await this.memory.saveMessage(
+              threadId,
+              'assistant',
+              routerResult.message,
+              {
+                agent: 'filter',
+                confidence: 1.0,
+                filtered: true,
+                filterType: routerResult.selectedAgent,
+                processingTime: Date.now() - startTime,
+              },
+            );
           } catch (memoryError) {
-            console.error('[TFL App] Memory save error for filtered query:', memoryError);
+            console.error(
+              '[TFL App] Memory save error for filtered query:',
+              memoryError,
+            );
           }
         }
-        
+
         return {
           response: routerResult.message,
           agent: 'filter',
@@ -422,12 +474,12 @@ class TFLUndergroundApp {
       'network status',
       'overall service',
       'which lines serve',
-      'accessibility at'
+      'accessibility at',
     ];
 
     const queryLower = query.toLowerCase();
-    return collaborativeKeywords.some(keyword => 
-      new RegExp(keyword, 'i').test(queryLower)
+    return collaborativeKeywords.some((keyword) =>
+      new RegExp(keyword, 'i').test(queryLower),
     );
   }
 
@@ -435,7 +487,7 @@ class TFLUndergroundApp {
   getAgentLineColor(agentName) {
     const lineColors = {
       circle: '#FFD329',
-      bakerloo: '#B36305', 
+      bakerloo: '#B36305',
       district: '#00782A',
       central: '#E32017',
       northern: '#000000',
@@ -449,29 +501,33 @@ class TFLUndergroundApp {
       status: '#0098D4',
       filter: '#FFA500',
       fallback: '#DC143C',
-      error: '#DC143C'
+      error: '#DC143C',
     };
     return lineColors[agentName] || '#666666';
   }
 
   // Streaming query processing
   async *streamQuery(query, threadId = null, userContext = {}) {
-    console.log(`[TFL App] Starting streaming query: "${query.substring(0, 100)}..."`);
-    
+    console.log(
+      `[TFL App] Starting streaming query: "${query.substring(0, 100)}..."`,
+    );
+
     try {
       const initialState = {
         query,
         threadId,
         userContext,
-        conversationHistory: threadId ? await this.getConversationHistory(threadId, 10) : [],
-        streamingEnabled: true
+        conversationHistory: threadId
+          ? await this.getConversationHistory(threadId, 10)
+          : [],
+        streamingEnabled: true,
       };
 
       // Stream workflow execution
       for await (const step of this.workflow.stream(initialState)) {
         const stepName = Object.keys(step)[0];
         const stepState = step[stepName];
-        
+
         // Format streaming update
         const update = {
           step: stepName,
@@ -480,10 +536,10 @@ class TFLUndergroundApp {
           confidence: stepState.confidence,
           metadata: {
             timestamp: new Date().toISOString(),
-            streaming: true
-          }
+            streaming: true,
+          },
         };
-        
+
         yield update;
       }
     } catch (error) {
@@ -491,7 +547,7 @@ class TFLUndergroundApp {
       yield {
         error: true,
         message: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -533,50 +589,50 @@ class TFLUndergroundApp {
   }
 
   // Get system health status
-  async getHealthStatus() {
-    try {
-      // Test database connection
-      const dbStatus = await this.memory.healthCheck();
+  // async getHealthStatus() {
+  //   try {
+  //     // Test database connection
+  //     const dbStatus = await this.memory.healthCheck();
 
-      // Test LLM connection
-      let llmStatus = false;
-      try {
-        await this.sharedLLM.invoke([{ role: 'user', content: 'test' }]);
-        llmStatus = true;
-      } catch (llmError) {
-        console.error('[TFL App] LLM health check failed:', llmError);
-      }
+  //     // Test LLM connection
+  //     let llmStatus = false;
+  //     try {
+  //       await this.sharedLLM.invoke([{ role: 'user', content: 'test' }]);
+  //       llmStatus = true;
+  //     } catch (llmError) {
+  //       console.error('[TFL App] LLM health check failed:', llmError);
+  //     }
 
-      // Test agent availability
-      const agentStatus = Object.keys(this.agents).reduce(
-        (status, agentName) => {
-          status[agentName] =
-            typeof this.agents[agentName].processQuery === 'function';
-          return status;
-        },
-        {},
-      );
+  //     // Test agent availability
+  //     const agentStatus = Object.keys(this.agents).reduce(
+  //       (status, agentName) => {
+  //         status[agentName] =
+  //           typeof this.agents[agentName].processQuery === 'function';
+  //         return status;
+  //       },
+  //       {},
+  //     );
 
-      return {
-        healthy: dbStatus && llmStatus,
-        components: {
-          database: dbStatus,
-          llm: llmStatus,
-          agents: agentStatus,
-        },
-        timestamp: new Date().toISOString(),
-        model: this.model,
-        version: '1.0.0',
-      };
-    } catch (error) {
-      console.error('[TFL App] Health check error:', error);
-      return {
-        healthy: false,
-        error: error.message,
-        timestamp: new Date().toISOString(),
-      };
-    }
-  }
+  //     return {
+  //       healthy: dbStatus && llmStatus,
+  //       components: {
+  //         database: dbStatus,
+  //         llm: llmStatus,
+  //         agents: agentStatus,
+  //       },
+  //       timestamp: new Date().toISOString(),
+  //       model: this.model,
+  //       version: '1.0.0',
+  //     };
+  //   } catch (error) {
+  //     console.error('[TFL App] Health check error:', error);
+  //     return {
+  //       healthy: false,
+  //       error: error.message,
+  //       timestamp: new Date().toISOString(),
+  //     };
+  //   }
+  // }
 
   // Get application info
   getInfo() {
